@@ -17,9 +17,13 @@ char** parse_args(char* yeah)
 	  {
 	  	//Copy the strsepped string into the array.
 	    arr[i] = malloc(sizeof *arr[i] * 8);
-	    printf("yeahcpy is %s\n",yeahcpy);
+	    //printf("yeahcpy is %s\n",yeahcpy);
 	    strcpy(arr[i], strsep(&yeahcpy," ")); 
-	    printf("arr[%d] is %s\n",i,arr[i]);
+	    //printf("arr[%d] is %s\n",i,arr[i]);
+	    /*if (!(strcmp(arr[i],"\n")))
+	    {
+	    	printf("Oh no\n");
+	    }*/
 	    i++;
 	  }
 	}
@@ -31,11 +35,22 @@ char** parse_args(char* yeah)
 
 int cshell()
 {
-	char rawcmd[256];
-	gets(rawcmd,256,stdin);
+	//char* string = '\n';
+	//printf("%d\n", string);
+	char* rawcmd;
+	rawcmd = malloc(256);
+	fgets(rawcmd,256,stdin);
+	int len;
+	len = strlen(rawcmd);
+	if (len > 0 && rawcmd[len-1] == '\n') {
+	    rawcmd[len-1] = '\0';
+	}
 	char** cmd;
+	cmd = malloc(256);
 	cmd = parse_args(rawcmd);
 	execvp(cmd[0],cmd);
+	//printf("%s\n", cmd[0]);
+	//printf("%s\n", cmd);
 	printf(">");
 	return 0;
 
