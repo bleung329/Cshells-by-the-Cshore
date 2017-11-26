@@ -20,10 +20,6 @@ char** parse_args(char* yeah)
 	    //printf("yeahcpy is %s\n",yeahcpy);
 	    strcpy(arr[i], strsep(&yeahcpy," ")); 
 	    //printf("arr[%d] is %s\n",i,arr[i]);
-	    /*if (!(strcmp(arr[i],"\n")))
-	    {
-	    	printf("Oh no\n");
-	    }*/
 	    i++;
 	  }
 	}
@@ -35,23 +31,19 @@ char** parse_args(char* yeah)
 
 int cshell()
 {
-	//char* string = '\n';
-	//printf("%d\n", string);
-	char* rawcmd;
-	rawcmd = malloc(256);
+	printf(">");
+	char* rawcmd = malloc(256);
 	fgets(rawcmd,256,stdin);
-	int len;
-	len = strlen(rawcmd);
+	int len = strlen(rawcmd);
+	//This gets rid of that pesky newline
 	if (len > 0 && rawcmd[len-1] == '\n') {
 	    rawcmd[len-1] = '\0';
 	}
-	char** cmd;
-	cmd = malloc(256);
-	cmd = parse_args(rawcmd);
-	execvp(cmd[0],cmd);
-	//printf("%s\n", cmd[0]);
-	//printf("%s\n", cmd);
-	printf(">");
+	char** cmd = parse_args(rawcmd);
+	if (fork() == 0)
+	{
+		execvp(cmd[0],cmd);
+	}
 	return 0;
 
 }
@@ -61,8 +53,11 @@ int main(int argc, char **argv)
 	  // Load config files, if any.
 
 	  // Run command loop.
+	while (true)
+	{
+		cshell();
 
-	cshell();
+	}
 		
 
 
