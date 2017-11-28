@@ -5,6 +5,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+/*
+Arguments: 
+    char* argstring
+What it Does: 
+    It will return a char**. All the elements in this char** are just the elements of argstring, split by a space.
+*/
 char** parse_args(char* yeah)
 {
 	//Init copy of argstring and array to store it.
@@ -32,38 +38,36 @@ char** parse_args(char* yeah)
 
 }
 
-//All I can say: Its dirty and recurses
-
+/*
+Arguments: 
+    char** cmd_line
+What it Does: 
+    It helps out with executing commands that are split by semicolons.
+    It makes 2 arrays out of an arbitrary list of commands split by ;.
+    1 of those arrays is the 1st command and the 2nd is an array of 
+    the rest of the commands, which may or may not have semicolons. 
+    It executes whatever is in the first array and calls itself 
+    again on the 2nd.
+Note:
+    oooo recursion
+*/
 int execfriend(char** cmd_line)
 {
 	char** cmd;
 	char** cmdrest;
-	int cmdlength, cmdrestlength;
-	for (cmdlength = 0; cmd_line[cmdlength]; cmdlength+=1){}
-	//printf("cmdlength is %d\n", cmdlength );
+	int totalcmdlength, cmdrestlength;
+    //Is there a better way to get length of an array of strings?
+	for (totalcmdlength = 0; cmd_line[totalcmdlength]; totalcmdlength+=1){}
 	for (int i = 0; cmd_line[i]; i++)
 	{
 		if (strcmp(cmd_line[i],";")==0)
 		{
-			cmdrestlength = cmdlength-i-1;
-			//printf("cmdrestlength is %d\n",cmdrestlength);
-			//printf("i is %d\n",i );
+			cmdrestlength = totalcmdlength-i-1;
 			cmd = malloc(i*8);
 			cmdrest = malloc(cmdrestlength*8);
 			memcpy(cmd, cmd_line, i*8);
 			memcpy(cmdrest, cmd_line+i+1, cmdrestlength*8);
 			int j = 0;
-		  	/*while(cmd[j])
-		  	{
-		  		printf("%s\n",cmd[j]);
-		  		j++;
-		  	}
-		  	j = 0;
-		  	while(cmdrest[j])
-		  	{
-		  		printf("%s\n",cmdrest[j]);
-		  		j++;
-		  	}*/
 		  	if (fork() == 0)
 		  	{
 		  		execvp(cmd[0],cmd);
@@ -72,12 +76,14 @@ int execfriend(char** cmd_line)
 		  	else
 		  	{
 		  		wait(NULL);
+                printf("\n");
 		  		free(cmd);
 		  		execfriend(cmdrest);
 		  	}
 		  	return 0;
 		}
 	}
+    //Base case
 	if (fork() == 0)
   	{
   		execvp(cmd_line[0],cmd_line);
@@ -90,6 +96,13 @@ int execfriend(char** cmd_line)
   	return 0;
 }
 
+/*
+Arguments:
+    (none)
+What it Does:
+    It's essentially the loop of the shell. It gets the input from 
+    the user and processes it. It's also where the cd lives.
+*/
 int cshell()
 {
 	pid_t childpid;
@@ -115,7 +128,14 @@ int cshell()
 
 }
 
-int main(int argc, char **argv)
+
+/*
+Arguments:
+    (none)
+What it Does:
+    It's the main.
+*/
+int main()
 {
 
 	// Run command loop.
@@ -126,8 +146,6 @@ int main(int argc, char **argv)
 
 	}
 
-
-	// Perform any shutdown/cleanup.
 
 	return 0;
 }
