@@ -11,29 +11,29 @@ Arguments:
 What it Does: 
     It will return a char**. All the elements in this char** are just the elements of argstring, split by a space.
 */
-char** parse_args(char* yeah)
+char** parse_args(char* argstring)
 {
 	//Init copy of argstring and array to store it.
-	char * yeahcpy = (char *)malloc(sizeof(yeah));
-	strcpy(yeahcpy,yeah);
+	char * argstringcpy = (char *)malloc(sizeof(argstring));
+	strcpy(argstringcpy,argstring);
 	char **arr = (char**) malloc(sizeof *arr * 8); 
 
 	if (arr)
 	{
 	  //The i is just to help me keep track of the strings.
 	  int i = 0;
-	  while(yeahcpy!=NULL)
+	  while(argstringcpy!=NULL)
 	  {
 	  	//Copy the strsepped string into the array.
 	    arr[i] = malloc(sizeof *arr[i] * 8);
-	    //printf("yeahcpy is %s\n",yeahcpy);
-	    strcpy(arr[i], strsep(&yeahcpy," ")); 
+	    //printf("argstringcpy is %s\n",argstringcpy);
+	    strcpy(arr[i], strsep(&argstringcpy," ")); 
 	    //printf("arr[%d] is %s\n",i,arr[i]);
 	    i++;
 	  }
 	}
 	//Free the copied string.
-	free(yeahcpy);
+	free(argstringcpy);
 	return arr;
 
 }
@@ -56,8 +56,18 @@ int execfriend(char** cmd_line)
 	char** cmd;
 	char** cmdrest;
 	int totalcmdlength, cmdrestlength;
+	char* pipes[] = {">","<"};
     //Is there a better way to get length of an array of strings?
 	for (totalcmdlength = 0; cmd_line[totalcmdlength]; totalcmdlength+=1){}
+	printf("total length = %d\n", totalcmdlength);
+	if (strcmp(cmd_line[totalcmdlength-2],">")==0)
+	{
+		printf("Yeah dat way\n");
+	}
+	if (strcmp(cmd_line[totalcmdlength-2],"<")==0)
+	{
+		printf("Float on the track with the segway\n");
+	}
 	for (int i = 0; cmd_line[i]; i++)
 	{
 		if (strcmp(cmd_line[i],";")==0)
@@ -115,6 +125,7 @@ int cshell()
 	    rawcmd[len-1] = '\0';
 	}
 	char** cmd = parse_args(rawcmd);
+	
 	//For cd
 	if (strcmp(cmd[0],"cd")==0)
 	{
