@@ -4,7 +4,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
+#include <sys/stat.h>
+#include <fcntl.h>
 /*
 Arguments: 
     char* argstring
@@ -56,18 +57,15 @@ int execfriend(char** cmd_line)
 	char** cmd;
 	char** cmdrest;
 	int totalcmdlength, cmdrestlength;
-	char* pipes[] = {">","<"};
     //Is there a better way to get length of an array of strings?
 	for (totalcmdlength = 0; cmd_line[totalcmdlength]; totalcmdlength+=1){}
 	printf("total length = %d\n", totalcmdlength);
-	if (strcmp(cmd_line[totalcmdlength-2],">")==0)
-	{
-		printf("Yeah dat way\n");
-	}
-	if (strcmp(cmd_line[totalcmdlength-2],"<")==0)
-	{
-		printf("Float on the track with the segway\n");
-	}
+	//onedirection(cmd_line);
+	int fd = open("r.txt", O_WRONLY);
+	printf("fd = %d\n",fd);
+	int newfd = dup(fd);
+	printf("dupfd = %d\n",newfd);
+
 	for (int i = 0; cmd_line[i]; i++)
 	{
 		if (strcmp(cmd_line[i],";")==0)
@@ -104,6 +102,14 @@ int execfriend(char** cmd_line)
   		wait(NULL);
   	}
   	return 0;
+}
+
+int onedirection(char** cmd_line,int totalcmdlength)
+{
+	if (strcmp(cmd_line[totalcmdlength-2],">")==0)
+	{
+		int fd = open(cmd_line[totalcmdlength-1],)
+	}
 }
 
 /*
