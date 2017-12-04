@@ -8,6 +8,9 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#define READ 0
+#define WRITE 1
+
 /*
 Arguments:
     char* argstring
@@ -84,9 +87,46 @@ int execfriend(char** cmd_line)
 		  	else
 		  	{
 		  		wait(NULL);
-                printf("\n");
 		  		free(cmd);
 		  		execfriend(cmdrest);
+				free(cmdrest);
+		  	}
+		  	return 0;
+		}
+	}
+
+	for (int i = 0; cmd_line[i]; i++)
+	{
+		if (strcmp(cmd_line[i],"|")==0)
+		{
+			int fds[2];
+			pipe(fds);
+			cmdrestlength = totalcmdlength-i-1;
+			cmd = malloc(i*8);
+			cmdrest = malloc(cmdrestlength*8);
+			memcpy(cmd, cmd_line, i*8);
+			memcpy(cmdrest, cmd_line+i+1, cmdrestlength*8);
+		  	if (fork() == 0)
+		  	{
+				close(fds[READ]);
+				int stdout = dup(1);
+				dup2(fds[WRITE], 1);
+		  		execvp(cmd[0],cmd);
+		  		free(cmd);
+				dup2(stdout, 1);
+				close(fds[WRITE]);
+		  		exit(0);
+		  	}
+		  	else
+		  	{
+		  		wait(NULL);
+                close(fds[WRITE]);
+				int stdin = dup(0);
+				dup2(fds[READ], 0);
+		  		execfriend(cmdrest);
+				free(cmdrest);
+				dup2(stdin, 0);
+				close(fds[READ]);
 		  	}
 		  	return 0;
 		}
