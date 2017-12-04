@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
+
 /*
 Arguments:
     char* argstring
@@ -59,7 +61,7 @@ int execfriend(char** cmd_line)
 	int totalcmdlength, cmdrestlength;
     //Is there a better way to get length of an array of strings?
 	for (totalcmdlength = 0; cmd_line[totalcmdlength]; totalcmdlength+=1){}
-	printf("total length = %d\n", totalcmdlength);
+	//printf("total length = %d\n", totalcmdlength);
 	//onedirection(cmd_line);
 	// int fd = open("r.txt", O_WRONLY);
 	// printf("fd = %d\n",fd);
@@ -89,11 +91,16 @@ int execfriend(char** cmd_line)
 		  	return 0;
 		}
 	}
+
 	if (totalcmdlength > 1 && strcmp(cmd_line[totalcmdlength-2],">")==0)
 	{
 		int stdout = dup(1);
-		int fd = open(cmd_line[totalcmdlength-1], O_WRONLY | O_CREAT, 0644);
-		dup2(fd, 1);
+		int fdout = open(cmd_line[totalcmdlength-1], O_WRONLY | O_CREAT, 0644);
+		if(fdout == -1){
+			printf("%s\n", strerror(errno));
+			return 0;
+		}
+		dup2(fdout, 1);
 
 		cmdrestlength = totalcmdlength-2;
 		char** cmd = malloc(cmdrestlength*8);
@@ -105,7 +112,7 @@ int execfriend(char** cmd_line)
 		{
 			execvp(cmd[0],cmd);
 			free(cmd);
-			printf("done with child\n");
+			//printf("done with child\n");
 			exit(0);
 		}
 		else
@@ -114,9 +121,43 @@ int execfriend(char** cmd_line)
 		}
 
 		dup2(stdout, 1);
-		close(fd);
+		close(fdout);
 		return 0;
 	}
+
+	if (totalcmdlength > 1 && strcmp(cmd_line[totalcmdlength-2],"<")==0)
+	{
+		int stdin = dup(0);
+		int fdin = open(cmd_line[totalcmdlength-1], O_RDONLY);
+		if(fdin == -1){
+			printf("%s\n", strerror(errno));
+			return 0;
+		}
+		dup2(fdin, 0);
+
+		cmdrestlength = totalcmdlength-2;
+		char** cmd = malloc(cmdrestlength*8);
+		memcpy(cmd, cmd_line, cmdrestlength*8);
+		// for(int i = 0; i < cmdrestlength; i++){
+		// 	printf("cmd[%d]: %s\n", i, cmd[i]);
+		// }
+		if (fork() == 0)
+		{
+			execvp(cmd[0],cmd);
+			free(cmd);
+			//printf("done with child\n");
+			exit(0);
+		}
+		else
+		{
+			wait(NULL);
+		}
+
+		dup2(stdin, 0);
+		close(fdin);
+		return 0;
+	}
+
     //Base case
 	if (fork() == 0)
   	{
@@ -129,49 +170,6 @@ int execfriend(char** cmd_line)
   	}
   	return 0;
 }
-
-// int onedirection(char** cmd_line,int totalcmdlength)
-// {
-// 	if (strcmp(cmd_line[totalcmdlength-2],">")==0)
-// 	{
-// 		int stdout = dup(1);
-// 		int fd = open(cmd_line[totalcmdlength-1], O_WRONLY | O_CREAT, 0644);
-//         dup2(fd, 1);
-// 		for (int i = 0; cmd_line[i]; i++)
-// 		{
-// 			if (strcmp(cmd_line[i],";")==0)
-// 			{
-// 				cmdrestlength = totalcmdlength-i-1;
-// 				cmd = malloc(i*8);
-// 				cmdrest = malloc(cmdrestlength*8);
-// 				memcpy(cmd, cmd_line, i*8);
-// 				memcpy(cmdrest, cmd_line+i+1, cmdrestlength*8);
-// 				int j = 0;
-// 			  	if (fork() == 0)
-// 			  	{
-// 			  		execvp(cmd[0],cmd);
-// 			  		exit(0);
-// 			  	}
-// 			  	else
-// 			  	{
-// 			  		wait(NULL);
-// 	                printf("\n");
-// 			  		free(cmd);
-// 			  		execfriend(cmdrest);
-// 			  	}
-// 			  	return 0;
-// 			}
-// 		}
-// 	    //Base case
-// 		if (fork() == 0)
-// 	  	{
-// 	  		execvp(cmd_line[0],cmd_line);
-// 	  		exit(0);
-// 	  	}
-// 		dup2(stdout, 1);
-// 		close(fd);
-// 	}
-// }
 
 /*
 Arguments:
