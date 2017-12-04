@@ -4,11 +4,13 @@
 * Forks and executes commands!
 * Parses multiple commands on one line!
 * Redirects using >, <!
+* Pipes using |!
 * Will twist your tongue!
 
 ## Attempted Features
 * Not requiring all items on the command line to be separated by a space
 * Being able to parse more than 2 commands on one line
+* Piping more than once
 
 ## Bugs
 * Can't parse more than 2 commands in one line
