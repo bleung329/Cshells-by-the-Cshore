@@ -98,25 +98,24 @@ int execfriend(char** cmd_line)
 		cmdrestlength = totalcmdlength-2;
 		char** cmd = malloc(cmdrestlength*8);
 		memcpy(cmd, cmd_line, cmdrestlength*8);
-		for(int i = 0; i < cmdrestlength; i++){
-			printf("cmd[%d]: %s\n", i, cmd[i]);
-		}
+		// for(int i = 0; i < cmdrestlength; i++){
+		// 	printf("cmd[%d]: %s\n", i, cmd[i]);
+		// }
 		if (fork() == 0)
 		{
 			execvp(cmd[0],cmd);
+			free(cmd);
+			printf("done with child\n");
 			exit(0);
 		}
 		else
 		{
 			wait(NULL);
-			printf("\n");
-			free(cmd);
-			execfriend(cmd);
 		}
-		return 0;
 
 		dup2(stdout, 1);
 		close(fd);
+		return 0;
 	}
     //Base case
 	if (fork() == 0)
@@ -194,6 +193,12 @@ int cshell()
 	}
 	char** cmd = parse_args(rawcmd);
 
+	//For exit
+	if (strcmp(cmd[0],"exit")==0)
+	{
+		return 1;
+	}
+
 	//For cd
 	if (strcmp(cmd[0],"cd")==0)
 	{
@@ -221,7 +226,9 @@ int main()
 	while (1)
 	{
 		printf(">");
-		cshell();
+		if(cshell()){
+			break;
+		}
 
 	}
 
