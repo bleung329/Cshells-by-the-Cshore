@@ -1,9 +1,0 @@
-a.out
-cat
-Cshell
-ls
-makefile
-ok
-README.md
-r.txt
-shell.c
