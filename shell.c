@@ -57,20 +57,14 @@ What it Does:
 Note:
     oooo recursion
 */
-int execfriend(char** cmd_line)
+void execfriend(char** cmd_line)
 {
 	char** cmd;
 	char** cmdrest;
 	int totalcmdlength, cmdrestlength;
-    //Is there a better way to get length of an array of strings?
+	int i;
 	for (totalcmdlength = 0; cmd_line[totalcmdlength]; totalcmdlength+=1){}
-	//printf("total length = %d\n", totalcmdlength);
-	//onedirection(cmd_line);
-	// int fd = open("r.txt", O_WRONLY);
-	// printf("fd = %d\n",fd);
-	// int newfd = dup(fd);
-	// printf("dupfd = %d\n",newfd);
-	for (int i = 0; cmd_line[i]; i++)
+	for (i = 0; cmd_line[i]; i++)
 	{
 		if (strcmp(cmd_line[i],";")==0)
 		{
@@ -81,21 +75,21 @@ int execfriend(char** cmd_line)
 			memcpy(cmdrest, cmd_line+i+1, cmdrestlength*8);
 		  	if (fork() == 0)
 		  	{
-		  		execvp(cmd[0],cmd);
+		  		execfriend(cmd);
 		  		exit(0);
 		  	}
 		  	else
 		  	{
 		  		wait(NULL);
-		  		free(cmd);
 		  		execfriend(cmdrest);
-				free(cmdrest);
 		  	}
-		  	return 0;
+			free(cmd);
+			free(cmdrest);
+		  	return;
 		}
 	}
 
-	for (int i = 0; cmd_line[i]; i++)
+	for (i = 0; cmd_line[i]; i++)
 	{
 		if (strcmp(cmd_line[i],"|")==0)
 		{
@@ -111,7 +105,7 @@ int execfriend(char** cmd_line)
 				close(fds[READ]);
 				int stdout = dup(1);
 				dup2(fds[WRITE], 1);
-		  		execvp(cmd[0],cmd);
+		  		execfriend(cmd);
 		  		free(cmd);
 				dup2(stdout, 1);
 				close(fds[WRITE]);
@@ -128,7 +122,7 @@ int execfriend(char** cmd_line)
 				dup2(stdin, 0);
 				close(fds[READ]);
 		  	}
-		  	return 0;
+		  	return;
 		}
 	}
 
@@ -138,7 +132,7 @@ int execfriend(char** cmd_line)
 		int fdout = open(cmd_line[totalcmdlength-1], O_WRONLY | O_CREAT, 0644);
 		if(fdout == -1){
 			printf("%s\n", strerror(errno));
-			return 0;
+			return;
 		}
 		dup2(fdout, 1);
 
@@ -150,7 +144,7 @@ int execfriend(char** cmd_line)
 		// }
 		if (fork() == 0)
 		{
-			execvp(cmd[0],cmd);
+			execfriend(cmd);
 			free(cmd);
 			//printf("done with child\n");
 			exit(0);
@@ -162,7 +156,7 @@ int execfriend(char** cmd_line)
 
 		dup2(stdout, 1);
 		close(fdout);
-		return 0;
+		return;
 	}
 
 	if (totalcmdlength > 1 && strcmp(cmd_line[totalcmdlength-2],"<")==0)
@@ -171,7 +165,7 @@ int execfriend(char** cmd_line)
 		int fdin = open(cmd_line[totalcmdlength-1], O_RDONLY);
 		if(fdin == -1){
 			printf("%s\n", strerror(errno));
-			return 0;
+			return;
 		}
 		dup2(fdin, 0);
 
@@ -183,7 +177,7 @@ int execfriend(char** cmd_line)
 		// }
 		if (fork() == 0)
 		{
-			execvp(cmd[0],cmd);
+			execfriend(cmd);
 			free(cmd);
 			//printf("done with child\n");
 			exit(0);
@@ -195,7 +189,7 @@ int execfriend(char** cmd_line)
 
 		dup2(stdin, 0);
 		close(fdin);
-		return 0;
+		return;
 	}
 
     //Base case
@@ -208,12 +202,14 @@ int execfriend(char** cmd_line)
   	{
   		wait(NULL);
   	}
-  	return 0;
+  	return;
 }
 
 /*
 Arguments:
     (none)
+Return Value:
+	1 if exited, 0 otherwise
 What it Does:
     It's essentially the loop of the shell. It gets the input from
     the user and processes it. It's also where the cd lives.
@@ -254,6 +250,8 @@ int cshell()
 /*
 Arguments:
     (none)
+Return Value:
+	0
 What it Does:
     It's the main.
 */
